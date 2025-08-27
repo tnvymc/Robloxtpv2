@@ -143,6 +143,22 @@ closeButton.TextScaled = true
 closeButton.Parent = Frame
 
 closeButton.MouseButton1Click:Connect(function()
+	-- WalkSpeed varsayılan değere dönsün
+	if player.Character and player.Character:FindFirstChild("Humanoid") then
+		player.Character.Humanoid.WalkSpeed = 16
+	end
+
+	-- NoClip kapatılsın
+	noClipActive = false
+	if player.Character then
+		for _, part in pairs(player.Character:GetChildren()) do
+			if part:IsA("BasePart") then
+				part.CanCollide = true
+			end
+		end
+	end
+
+	-- GUI’yi kaldır
 	ScreenGui:Destroy()
 end)
 
