@@ -1,0 +1,166 @@
+-- Hizmetler
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local player = Players.LocalPlayer
+
+-- GUI Oluştur
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Parent = game.CoreGui
+
+local Frame = Instance.new("Frame")
+Frame.Size = UDim2.new(0, 220, 0, 250)
+Frame.Position = UDim2.new(1, -250, 0, 50)
+Frame.BackgroundColor3 = Color3.fromRGB(30,30,30)
+Frame.Parent = ScreenGui
+
+-- Konumlar
+local konumlar = {nil, nil, nil}
+
+-- Butonlar: Konum Kaydet
+local kaydetButonlar = {}
+for i = 1, 3 do
+	local btn = Instance.new("TextButton")
+	btn.Size = UDim2.new(0.3,0,0.1,0)
+	btn.Position = UDim2.new(0.05 + (i-1)*0.33,0,0.05,0)
+	btn.BackgroundColor3 = Color3.fromRGB(0,170,255)
+	btn.TextColor3 = Color3.fromRGB(255,255,255)
+	btn.Text = "Kaydet "..i
+	btn.Parent = Frame
+	table.insert(kaydetButonlar, btn)
+
+	btn.MouseButton1Click:Connect(function()
+		local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+		if hrp then
+			konumlar[i] = hrp.Position
+			btn.BackgroundColor3 = Color3.fromRGB(0,255,128)
+			print("Konum "..i.." kaydedildi: ", konumlar[i])
+		end
+	end)
+end
+
+-- Sabit Nokta Butonları
+local tpButonlar = {}
+for i = 1, 3 do
+	local btn = Instance.new("TextButton")
+	btn.Size = UDim2.new(0.3,0,0.1,0)
+	btn.Position = UDim2.new(0.05 + (i-1)*0.33,0,0.2,0)
+	btn.BackgroundColor3 = Color3.fromRGB(255,128,0)
+	btn.TextColor3 = Color3.fromRGB(0,0,0)
+	btn.Text = "Nokta "..i
+	btn.Parent = Frame
+	table.insert(tpButonlar, btn)
+
+	btn.MouseButton1Click:Connect(function()
+		if konumlar[i] then
+			local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+			if hrp then
+				hrp.CFrame = CFrame.new(konumlar[i])
+			end
+		else
+			print("Önce konum "..i.." kaydedin!")
+		end
+	end)
+end
+
+-- Speed Kontrol
+local speedLabel = Instance.new("TextLabel")
+speedLabel.Size = UDim2.new(1,0,0.08,0)
+speedLabel.Position = UDim2.new(0,0,0.35,0)
+speedLabel.BackgroundTransparency = 1
+speedLabel.TextColor3 = Color3.fromRGB(255,255,255)
+speedLabel.Text = "Speed: 16"
+speedLabel.TextScaled = true
+speedLabel.Parent = Frame
+
+local speedSlider = Instance.new("TextButton")
+speedSlider.Size = UDim2.new(1,0,0.08,0)
+speedSlider.Position = UDim2.new(0,0,0.45,0)
+speedSlider.BackgroundColor3 = Color3.fromRGB(0,170,255)
+speedSlider.Text = "Speed +"
+speedSlider.Parent = Frame
+
+speedSlider.MouseButton1Click:Connect(function()
+	local character = player.Character
+	if character and character:FindFirstChild("Humanoid") then
+		local humanoid = character.Humanoid
+		humanoid.WalkSpeed = humanoid.WalkSpeed + 4
+		speedLabel.Text = "Speed: "..humanoid.WalkSpeed
+	end
+end)
+
+-- Yuvarlak göster/gizle butonu
+local toggleButton = Instance.new("TextButton")
+toggleButton.Size = UDim2.new(0,50,0,50)
+toggleButton.Position = UDim2.new(1,-60,0,110)
+toggleButton.BackgroundColor3 = Color3.fromRGB(255,100,100)
+toggleButton.TextColor3 = Color3.fromRGB(255,255,255)
+toggleButton.Text = "⇅"
+toggleButton.Parent = ScreenGui
+
+local guiVisible = true
+toggleButton.MouseButton1Click:Connect(function()
+	guiVisible = not guiVisible
+	Frame.Visible = guiVisible
+end)
+
+-- NoClip (eski kodu buraya ekleyebilirsin)
+local noClipActive = false
+local NoClipButton = Instance.new("TextButton")
+NoClipButton.Size = UDim2.new(1,0,0.08,0)
+NoClipButton.Position = UDim2.new(0,0,0.55,0)
+NoClipButton.BackgroundColor3 = Color3.fromRGB(255,100,0)
+NoClipButton.TextColor3 = Color3.fromRGB(0,0,0)
+NoClipButton.Text = "NoClip: Kapalı"
+NoClipButton.Parent = Frame
+
+NoClipButton.MouseButton1Click:Connect(function()
+	noClipActive = not noClipActive
+	NoClipButton.Text = "NoClip: "..(noClipActive and "Açık" or "Kapalı")
+end)
+
+RunService.Stepped:Connect(function()
+	if noClipActive then
+		for _, part in pairs(player.Character:GetChildren()) do
+			if part:IsA("BasePart") then
+				part.CanCollide = false
+			end
+		end
+	end
+end)
+
+-- Mobil ve PC sürükleme (Frame ve toggleButton)
+local function makeDraggable(gui)
+	local dragging, dragInput, dragStart, startPos
+	gui.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			dragging = true
+			dragStart = input.Position
+			startPos = gui.Position
+			input.Changed:Connect(function()
+				if input.UserInputState == Enum.UserInputState.End then
+					dragging = false
+				end
+			end)
+		end
+	end)
+	gui.InputChanged:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+			dragInput = input
+		end
+	end)
+	UserInputService.InputChanged:Connect(function(input)
+		if input == dragInput and dragging then
+			local delta = input.Position - dragStart
+			gui.Position = UDim2.new(
+				startPos.X.Scale,
+				startPos.X.Offset + delta.X,
+				startPos.Y.Scale,
+				startPos.Y.Offset + delta.Y
+			)
+		end
+	end)
+end
+
+makeDraggable(Frame)
+makeDraggable(toggleButton)
