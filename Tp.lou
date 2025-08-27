@@ -9,7 +9,7 @@ local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Parent = game.CoreGui
 
 local Frame = Instance.new("Frame")
-Frame.Size = UDim2.new(0, 220, 0, 250)
+Frame.Size = UDim2.new(0, 220, 0, 300)
 Frame.Position = UDim2.new(1, -250, 0, 50)
 Frame.BackgroundColor3 = Color3.fromRGB(30,30,30)
 Frame.Parent = ScreenGui
@@ -63,48 +63,36 @@ for i = 1, 3 do
 	end)
 end
 
--- Speed Kontrol
+-- Speed Label ve TextBox
 local speedLabel = Instance.new("TextLabel")
 speedLabel.Size = UDim2.new(1,0,0.08,0)
 speedLabel.Position = UDim2.new(0,0,0.35,0)
 speedLabel.BackgroundTransparency = 1
 speedLabel.TextColor3 = Color3.fromRGB(255,255,255)
-speedLabel.Text = "Speed: 16"
+speedLabel.Text = "Speed:"
 speedLabel.TextScaled = true
 speedLabel.Parent = Frame
 
-local speedSlider = Instance.new("TextButton")
-speedSlider.Size = UDim2.new(1,0,0.08,0)
-speedSlider.Position = UDim2.new(0,0,0.45,0)
-speedSlider.BackgroundColor3 = Color3.fromRGB(0,170,255)
-speedSlider.Text = "Speed +"
-speedSlider.Parent = Frame
+local speedBox = Instance.new("TextBox")
+speedBox.Size = UDim2.new(1,0,0.08,0)
+speedBox.Position = UDim2.new(0,0,0.45,0)
+speedBox.BackgroundColor3 = Color3.fromRGB(0,170,255)
+speedBox.TextColor3 = Color3.fromRGB(0,0,0)
+speedBox.Text = "16"
+speedBox.ClearTextOnFocus = false
+speedBox.Parent = Frame
 
-speedSlider.MouseButton1Click:Connect(function()
-	local character = player.Character
-	if character and character:FindFirstChild("Humanoid") then
-		local humanoid = character.Humanoid
-		humanoid.WalkSpeed = humanoid.WalkSpeed + 4
-		speedLabel.Text = "Speed: "..humanoid.WalkSpeed
+speedBox.FocusLost:Connect(function(enterPressed)
+	if enterPressed then
+		local speed = tonumber(speedBox.Text)
+		if speed and player.Character and player.Character:FindFirstChild("Humanoid") then
+			player.Character.Humanoid.WalkSpeed = speed
+			print("Yeni Speed:", speed)
+		end
 	end
 end)
 
--- Yuvarlak göster/gizle butonu
-local toggleButton = Instance.new("TextButton")
-toggleButton.Size = UDim2.new(0,50,0,50)
-toggleButton.Position = UDim2.new(1,-60,0,110)
-toggleButton.BackgroundColor3 = Color3.fromRGB(255,100,100)
-toggleButton.TextColor3 = Color3.fromRGB(255,255,255)
-toggleButton.Text = "⇅"
-toggleButton.Parent = ScreenGui
-
-local guiVisible = true
-toggleButton.MouseButton1Click:Connect(function()
-	guiVisible = not guiVisible
-	Frame.Visible = guiVisible
-end)
-
--- NoClip (eski kodu buraya ekleyebilirsin)
+-- NoClip
 local noClipActive = false
 local NoClipButton = Instance.new("TextButton")
 NoClipButton.Size = UDim2.new(1,0,0.08,0)
@@ -129,7 +117,35 @@ RunService.Stepped:Connect(function()
 	end
 end)
 
--- Mobil ve PC sürükleme (Frame ve toggleButton)
+-- Yuvarlak göster/gizle butonu
+local toggleButton = Instance.new("TextButton")
+toggleButton.Size = UDim2.new(0,50,0,50)
+toggleButton.Position = UDim2.new(1,-60,0,120)
+toggleButton.BackgroundColor3 = Color3.fromRGB(255,100,100)
+toggleButton.TextColor3 = Color3.fromRGB(255,255,255)
+toggleButton.Text = "⇅"
+toggleButton.Parent = ScreenGui
+
+local guiVisible = true
+toggleButton.MouseButton1Click:Connect(function()
+	guiVisible = not guiVisible
+	Frame.Visible = guiVisible
+end)
+
+-- Kapatma butonu
+local closeButton = Instance.new("TextButton")
+closeButton.Size = UDim2.new(0,50,0,50)
+closeButton.Position = UDim2.new(1,-60,0,180)
+closeButton.BackgroundColor3 = Color3.fromRGB(255,50,50)
+closeButton.TextColor3 = Color3.fromRGB(255,255,255)
+closeButton.Text = "X"
+closeButton.Parent = ScreenGui
+
+closeButton.MouseButton1Click:Connect(function()
+	ScreenGui:Destroy()
+end)
+
+-- Mobil ve PC sürükleme
 local function makeDraggable(gui)
 	local dragging, dragInput, dragStart, startPos
 	gui.InputBegan:Connect(function(input)
@@ -164,3 +180,4 @@ end
 
 makeDraggable(Frame)
 makeDraggable(toggleButton)
+makeDraggable(closeButton)
